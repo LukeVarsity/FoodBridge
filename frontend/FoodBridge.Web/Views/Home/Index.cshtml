@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="p-4 mb-4 bg-light rounded-3">
+    <h1 class="display-6 fw-bold">Surplus food in, hungry people fed</h1>
+    <p class="lead">
+        South Africa loses around 10.3 million tonnes of edible food a year, while about one in five households
+        doesn't have enough to eat. FoodBridge lets restaurants, bakeries and shops post food they can't sell,
+        so NGOs and soup kitchens nearby can claim it and collect it before it goes to waste.
+    </p>
+    <a class="btn btn-success" asp-controller="Listings" asp-action="Create">I have surplus food</a>
+    <a class="btn btn-outline-success" asp-controller="Listings" asp-action="Index" asp-route-status="Available">I'm an NGO looking for food</a>
+</div>
+
+@if (ViewBag.ApiDown == true)
+{
+    <div class="alert alert-warning">
+        Couldn't reach the API right now. On the live site it can take about a minute to wake up, so refresh shortly.
+    </div>
+}
+else
+{
+    <div class="row text-center g-3">
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body">
+                    <div class="display-6">@ViewBag.Available</div>
+                    <div>Available to claim</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <div class="display-6">@ViewBag.Claimed</div>
+                    <div>Claimed, waiting for pickup</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-secondary">
+                <div class="card-body">
+                    <div class="display-6">@ViewBag.Collected</div>
+                    <div>Collected and saved from waste</div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
