@@ -1,0 +1,20 @@
+# real environment values never go into git
+.env
+
+# build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+TestResults/
+
+# visual studio / rider / vs code
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+
+# os junk
+.DS_Store
+Thumbs.db
