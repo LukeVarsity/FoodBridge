@@ -1,0 +1,37 @@
+@model FoodListing
+@{
+    ViewData["Title"] = "Claim food";
+}
+
+<h2>Claim this food</h2>
+
+<div class="card mb-3" style="max-width: 600px;">
+    <div class="card-body">
+        <h5 class="card-title">@Model.Title (@Model.Quantity)</h5>
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p class="card-text">@Model.Description</p>
+        }
+        <p class="card-text mb-1"><strong>Donor:</strong> @Model.DonorName</p>
+        <p class="card-text mb-1"><strong>Pickup address:</strong> @Model.PickupAddress</p>
+        <p class="card-text"><strong>Collect by:</strong> @Model.CollectBy.ToString("dd MMM yyyy HH:mm")</p>
+    </div>
+</div>
+
+@if (Model.Status != ListingStatus.Available)
+{
+    <div class="alert alert-warning">This listing has already been claimed by @Model.ClaimedBy.</div>
+    <a asp-action="Index" class="btn btn-link">Back to listings</a>
+}
+else
+{
+    <form asp-action="Claim" asp-route-id="@Model.Id" method="post" style="max-width: 600px;">
+        <div class="mb-3">
+            <label for="claimedBy" class="form-label">Your NGO or soup kitchen name</label>
+            <input id="claimedBy" name="claimedBy" class="form-control" maxlength="100" />
+            <span class="text-danger">@Html.ValidationMessage("claimedBy")</span>
+        </div>
+        <button type="submit" class="btn btn-success">Claim it</button>
+        <a asp-action="Index" class="btn btn-link">Cancel</a>
+    </form>
+}

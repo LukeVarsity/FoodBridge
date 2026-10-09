@@ -1,0 +1,96 @@
+@model List<FoodListing>
+@{
+    ViewData["Title"] = "Browse food";
+    string? current = ViewBag.Status;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Food listings</h2>
+    <a class="btn btn-success" asp-action="Create">Post surplus food</a>
+</div>
+
+<div class="btn-group mb-3">
+    <a class="btn btn-sm @(current == null ? "btn-dark" : "btn-outline-dark")" asp-action="Index">All</a>
+    <a class="btn btn-sm @(current == "Available" ? "btn-dark" : "btn-outline-dark")" asp-action="Index" asp-route-status="Available">Available</a>
+    <a class="btn btn-sm @(current == "Claimed" ? "btn-dark" : "btn-outline-dark")" asp-action="Index" asp-route-status="Claimed">Claimed</a>
+    <a class="btn btn-sm @(current == "Collected" ? "btn-dark" : "btn-outline-dark")" asp-action="Index" asp-route-status="Collected">Collected</a>
+</div>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-warning">@ViewBag.Error</div>
+}
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No listings here yet.</p>
+}
+else
+{
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Food</th>
+                <th>Donor</th>
+                <th>Collect by</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@item.Title</strong> (@item.Quantity)
+                        @if (!string.IsNullOrEmpty(item.Description))
+                        {
+                            <div class="small text-muted">@item.Description</div>
+                        }
+                    </td>
+                    <td>
+                        @item.DonorName
+                        <div class="small text-muted">@item.PickupAddress</div>
+                    </td>
+                    <td>@item.CollectBy.ToString("dd MMM HH:mm")</td>
+                    <td>
+                        @if (item.IsPastCollectBy)
+                        {
+                            <span class="badge bg-danger">Past collect by</span>
+                        }
+                        else if (item.Status == ListingStatus.Available)
+                        {
+                            <span class="badge bg-success">Available</span>
+                        }
+                        else if (item.Status == ListingStatus.Claimed)
+                        {
+                            <span class="badge bg-warning text-dark">Claimed</span>
+                            <div class="small text-muted">by @item.ClaimedBy</div>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Collected</span>
+                            <div class="small text-muted">by @item.ClaimedBy</div>
+                        }
+                    </td>
+                    <td class="text-end">
+                        @if (item.Status == ListingStatus.Available && !item.IsPastCollectBy)
+                        {
+                            <a class="btn btn-sm btn-outline-success" asp-action="Claim" asp-route-id="@item.Id">Claim</a>
+                        }
+                        @if (item.Status == ListingStatus.Claimed)
+                        {
+                            <form asp-action="Collect" asp-route-id="@item.Id" method="post" class="d-inline">
+                                <button class="btn btn-sm btn-outline-primary">Mark collected</button>
+                            </form>
+                        }
+                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
+                              onsubmit="return confirm('Remove this listing?');">
+                            <button class="btn btn-sm btn-outline-danger">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
