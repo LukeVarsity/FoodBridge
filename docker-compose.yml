@@ -1,0 +1,67 @@
+# Runs the whole FoodBridge stack locally: docker compose up --build
+# Values like ${POSTGRES_PASSWORD} come from the .env file (copy .env.example to .env first)
+#
+# Compose file reference
+# Docker Documentation
+# Accessed : 9 October 2026
+# Available at : https://docs.docker.com/reference/compose-file/
+
+name: foodbridge
+
+services:
+
+  # local postgres, only used when running with compose. the live site uses neon instead
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    # the api runs migrations on startup, so it has to wait until postgres is actually accepting connections
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - foodbridge-net
+
+  api:
+    build: ./backend/FoodBridge.Api
+    image: foodbridge-api
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+    ports:
+      - "${API_PORT}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      foodbridge-net:
+        # the web app calls the api by this alias instead of an ip address
+        aliases:
+          - foodbridge-api
+
+  web:
+    build: ./frontend/FoodBridge.Web
+    image: foodbridge-web
+    environment:
+      ApiBaseUrl: "http://foodbridge-api:8080"
+    ports:
+      - "${WEB_PORT}:8080"
+    depends_on:
+      - api
+    networks:
+      - foodbridge-net
+
+networks:
+  foodbridge-net:
+    driver: bridge
+
+# keeps the database between docker compose down and up. down -v wipes it
+volumes:
+  db-data:
